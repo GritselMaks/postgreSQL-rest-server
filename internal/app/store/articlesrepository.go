@@ -21,7 +21,7 @@ func (r *ArticlesRepository) Save(a *model.Articles) (*model.Articles, error) {
 		a.Title,
 		a.FullText,
 		a.Price,
-		a.Data,
+		a.Date,
 		a.URLFoto,
 	).Scan(&a.ID); err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (r *ArticlesRepository) ShowArticles(sort []string) ([]model.Articles, erro
 	articles := []model.Articles{}
 	for insert.Next() {
 		var article model.Articles
-		if err := insert.Scan(&article.ID, &article.Title, &article.FullText, &article.Price, &article.URLFoto, &article.Data); err != nil {
+		if err := insert.Scan(&article.ID, &article.Title, &article.FullText, &article.Price, &article.URLFoto, &article.Date); err != nil {
 			fmt.Println("errors Scan articles")
 			return nil, errors.New("errors Scan articles")
 		}

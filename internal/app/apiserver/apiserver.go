@@ -99,7 +99,7 @@ func (s *APIServer) HandleCreate() http.HandlerFunc {
 		FullText string `json:"fulltext"`
 		Price    int    `json:"price"`
 		URLFoto  string `json:"urlfoto"`
-		Data     string `json:"data"`
+		Date     string `json:"date"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +111,7 @@ func (s *APIServer) HandleCreate() http.HandlerFunc {
 			Title:    req.Title,
 			FullText: req.FullText,
 			Price:    req.Price,
-			Data:     req.Data,
+			Date:     req.Date,
 			URLFoto:  req.URLFoto,
 		}
 		id, err := s.store.User().Save(art)
