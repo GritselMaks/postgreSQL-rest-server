@@ -10,12 +10,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Create new API server
 type APIServer struct {
 	router *mux.Router
 	store  store.Store
 }
 
-// new API server
+// Start API server
 func NewServer(store store.Store) *APIServer {
 	s := APIServer{
 		router: mux.NewRouter(),
@@ -25,7 +26,7 @@ func NewServer(store store.Store) *APIServer {
 	return &s
 }
 
-//start API server
+// Configurate router
 func Start(config *Config) error {
 	db, err := store.NewDB(config.DatabaseURL)
 	if err != nil {
@@ -47,7 +48,7 @@ func (s *APIServer) configRouter() {
 
 }
 
-// response all articles
+// Handles the request to receive data and returns datas in Json format
 func (s *APIServer) HandleShowArticles() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sortParam := strings.Split(r.URL.Query().Get("sort"), ",")
@@ -77,7 +78,7 @@ func (s *APIServer) HandleShowArticles() http.HandlerFunc {
 	}
 }
 
-//response one article
+// Handles the request to receive data and returns datas in Json format
 func (s *APIServer) HandleShowArticle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)["id"]
@@ -90,15 +91,15 @@ func (s *APIServer) HandleShowArticle() http.HandlerFunc {
 	}
 }
 
-//creare article
+// Creare article
 func (s *APIServer) HandleCreate() http.HandlerFunc {
 
 	type request struct {
-		Title    string   `json:"title"`
-		FullText string   `json:"fulltext"`
-		Prise    float64  `json:"prise"`
-		URLFoto  []string `json:"urlfoto"`
-		Data     string   `json:"data"`
+		Title    string `json:"title"`
+		FullText string `json:"fulltext"`
+		Price    int    `json:"price"`
+		URLFoto  string `json:"urlfoto"`
+		Data     string `json:"data"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +110,7 @@ func (s *APIServer) HandleCreate() http.HandlerFunc {
 		art := &model.Articles{
 			Title:    req.Title,
 			FullText: req.FullText,
-			Price:    req.Prise,
+			Price:    req.Price,
 			Data:     req.Data,
 			URLFoto:  req.URLFoto,
 		}
@@ -122,14 +123,9 @@ func (s *APIServer) HandleCreate() http.HandlerFunc {
 
 }
 
-//respond http status and Json string
+// Forms a response with http Status and Json data
 func (s *APIServer) respond(w http.ResponseWriter, r *http.Request, code int, data interface{}) {
 	if data != nil {
 		json.NewEncoder(w).Encode(data)
 	}
-
-	// w.WriteHeader(code)
-	// if result, err := json.MarshalIndent(data, "", " "); err == nil {
-	// 	w.Write(result)
-	// }
 }

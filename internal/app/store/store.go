@@ -7,14 +7,14 @@ import (
 )
 
 type Store struct {
-	Db                 *sql.DB
+	db                 *sql.DB
 	articlesRepository *ArticlesRepository
 }
 
 // Create New Store
 func New(db *sql.DB) *Store {
 	return &Store{
-		Db: db,
+		db: db,
 	}
 
 }
