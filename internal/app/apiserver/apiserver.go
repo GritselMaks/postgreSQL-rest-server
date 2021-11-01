@@ -3,6 +3,7 @@ package apiserver
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/GritselMaks/postgreSQL-api-server/internal/app/model"
 	"github.com/GritselMaks/postgreSQL-api-server/internal/app/store"
@@ -49,7 +50,26 @@ func (s *APIServer) configRouter() {
 // response all articles
 func (s *APIServer) HandleShowArticles() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		articles, err := s.store.User().ShowArticles(r.URL.Query())
+		sortParam := strings.Split(r.URL.Query().Get("sort"), ",")
+		if len(sortParam) != 2 {
+			s.respond(w, r, http.StatusInternalServerError, "query parameter sort is not valid")
+		}
+		for i, s := range sortParam {
+			if s == "price" {
+				sortParam[i] = "price DESC"
+			}
+			if s == "-price" {
+				sortParam[i] = "price ASC"
+			}
+			if s == "-date" {
+				sortParam[i] = "date_at ASC"
+			}
+			if s == "date" {
+				sortParam[i] = "date_at DESC"
+			}
+		}
+
+		articles, err := s.store.User().ShowArticles(sortParam)
 		if err != nil {
 			s.respond(w, r, http.StatusInternalServerError, "Error in select From database")
 		}
@@ -59,13 +79,12 @@ func (s *APIServer) HandleShowArticles() http.HandlerFunc {
 
 //response one article
 func (s *APIServer) HandleShowArticle() http.HandlerFunc {
-
-	var article model.Articles
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		if err := s.store.User().ShowArticle(article, vars); err != nil {
-
-			s.respond(w, r, http.StatusInternalServerError, "Error in select From database")
+		vars := mux.Vars(r)["id"]
+		fields := r.FormValue("fields")
+		article, err := s.store.User().ShowArticle(vars, fields)
+		if err != nil {
+			s.respond(w, r, http.StatusInternalServerError, "request undeclared ID or select parametrs")
 		}
 		s.respond(w, r, http.StatusOK, article)
 	}
