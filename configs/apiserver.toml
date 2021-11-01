@@ -1,0 +1,2 @@
+bind_addr = "localhost:8080"
+database_url = "host=database port=5432 user=postgres password=Root dbname=articles sslmode=disable"
