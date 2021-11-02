@@ -13,22 +13,21 @@ type ArticlesRepository struct {
 }
 
 // Save data in DB and return id rows
-func (r *ArticlesRepository) Save(a *model.Articles) (*model.Articles, error) {
-	if len(a.Title) > 200 || len(a.FullText) > 1000 || len(a.URLFoto) > 3 {
-		return nil, errors.New("andeclared len title, text article, or count foto")
+func (r *ArticlesRepository) Save(a *model.Articles) (int, error) {
+	if len(a.Title) > 200 || len(a.FullText) > 1000 {
+		return a.ID, errors.New("andeclared len title, text article, or count foto")
 	}
 	if err := r.store.db.QueryRow(
-		"INSERT INTO articles (title, full_text, price, data, urlfoto) values ($1,$2,$3,$4,$5) RETURNING id",
+		"INSERT INTO articles (title, full_text, price, date_at, url_foto) values ($1,$2,$3,$4,$5) RETURNING id",
 		a.Title,
 		a.FullText,
 		a.Price,
 		a.Date,
 		a.URLFoto,
 	).Scan(&a.ID); err != nil {
-		return nil, err
+		return a.ID, err
 	}
-
-	return a, nil
+	return a.ID, nil
 }
 
 // ShowArticle makes select from DB one row and adds to variable with type Article.
