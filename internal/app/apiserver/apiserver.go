@@ -52,29 +52,26 @@ func (s *APIServer) configRouter() {
 func (s *APIServer) HandleShowArticles() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sortParam := strings.Split(r.URL.Query().Get("sort"), ",")
-		if len(sortParam) != 2 {
-			s.respond(w, r, http.StatusInternalServerError, "query parameter sort is not valid")
-		}
 		for i, s := range sortParam {
-			if s == "price" {
+			switch s {
+			case "price":
 				sortParam[i] = "price DESC"
-			}
-			if s == "-price" {
+			case "-price":
 				sortParam[i] = "price ASC"
-			}
-			if s == "-date" {
+			case "-date":
 				sortParam[i] = "date_at ASC"
-			}
-			if s == "date" {
+			case "date":
 				sortParam[i] = "date_at DESC"
+			default:
+				sortParam[i] = ""
 			}
 		}
-
 		articles, err := s.store.User().ShowArticles(sortParam)
 		if err != nil {
-			s.respond(w, r, http.StatusInternalServerError, "Error in select From database")
+			s.respond(w, r, http.StatusNoContent, err)
+		} else {
+			s.respond(w, r, http.StatusOK, articles)
 		}
-		s.respond(w, r, http.StatusOK, articles)
 	}
 }
 
@@ -85,9 +82,10 @@ func (s *APIServer) HandleShowArticle() http.HandlerFunc {
 		fields := r.FormValue("fields")
 		article, err := s.store.User().ShowArticle(vars, fields)
 		if err != nil {
-			s.respond(w, r, http.StatusInternalServerError, "request undeclared ID or select parametrs")
+			s.respond(w, r, http.StatusNoContent, article)
+		} else {
+			s.respond(w, r, http.StatusOK, article)
 		}
-		s.respond(w, r, http.StatusOK, article)
 	}
 }
 
@@ -126,6 +124,8 @@ func (s *APIServer) HandleCreate() http.HandlerFunc {
 // Forms a response with http Status and Json data
 func (s *APIServer) respond(w http.ResponseWriter, r *http.Request, code int, data interface{}) {
 	if data != nil {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(code)
 		json.NewEncoder(w).Encode(data)
 	}
 }
