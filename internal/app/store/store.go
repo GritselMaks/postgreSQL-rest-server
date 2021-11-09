@@ -33,7 +33,7 @@ func NewDB(dbURL string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (s *Store) User() *ArticlesRepository {
+func (s *Store) Articles() *ArticlesRepository {
 	if s.articlesRepository != nil {
 		return s.articlesRepository
 	}

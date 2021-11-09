@@ -66,7 +66,7 @@ func (s *APIServer) HandleShowArticles() http.HandlerFunc {
 				sortParam[i] = ""
 			}
 		}
-		articles, err := s.store.User().ShowArticles(sortParam)
+		articles, err := s.store.Articles().ShowArticles(sortParam)
 		if err != nil {
 			s.respond(w, r, http.StatusNoContent, err)
 		} else {
@@ -80,7 +80,7 @@ func (s *APIServer) HandleShowArticle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)["id"]
 		fields := r.FormValue("fields")
-		article, err := s.store.User().ShowArticle(vars, fields)
+		article, err := s.store.Articles().ShowArticle(vars, fields)
 		if err != nil {
 			s.respond(w, r, http.StatusNoContent, article)
 		} else {
@@ -93,17 +93,17 @@ func (s *APIServer) HandleShowArticle() http.HandlerFunc {
 func (s *APIServer) HandleCreate() http.HandlerFunc {
 
 	type request struct {
-		Title    string `json:"title"`
-		FullText string `json:"fulltext"`
-		Price    int    `json:"price"`
-		URLFoto  string `json:"urlfoto"`
-		Date     string `json:"date"`
+		Title    string   `json:"title"`
+		FullText string   `json:"fulltext"`
+		Price    int      `json:"price"`
+		URLFoto  []string `json:"urlfoto"`
+		Date     string   `json:"date"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-			s.respond(w, r, http.StatusBadRequest, err)
+			s.respond(w, r, http.StatusBadRequest, "not valid request")
 		}
 		art := &model.Articles{
 			Title:    req.Title,
@@ -112,7 +112,7 @@ func (s *APIServer) HandleCreate() http.HandlerFunc {
 			Date:     req.Date,
 			URLFoto:  req.URLFoto,
 		}
-		id, err := s.store.User().Save(art)
+		id, err := s.store.Articles().Save(art)
 		if err != nil {
 			s.respond(w, r, http.StatusExpectationFailed, err)
 		}

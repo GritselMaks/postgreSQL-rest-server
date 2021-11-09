@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/GritselMaks/postgreSQL-api-server/internal/app/model"
+	"github.com/lib/pq"
 )
 
 type ArticlesRepository struct {
@@ -14,7 +15,7 @@ type ArticlesRepository struct {
 
 // Save data in DB and return id rows
 func (r *ArticlesRepository) Save(a *model.Articles) (int, error) {
-	if len(a.Title) > 200 || len(a.FullText) > 1000 {
+	if len(a.Title) > 200 || len(a.FullText) > 1000 || len(a.URLFoto) > 3 {
 		return a.ID, errors.New("andeclared len title, text article, or count foto")
 	}
 	if err := r.store.db.QueryRow(
@@ -23,7 +24,7 @@ func (r *ArticlesRepository) Save(a *model.Articles) (int, error) {
 		a.FullText,
 		a.Price,
 		a.Date,
-		a.URLFoto,
+		pq.Array(a.URLFoto),
 	).Scan(&a.ID); err != nil {
 		return a.ID, err
 	}
@@ -36,13 +37,13 @@ func (r *ArticlesRepository) ShowArticle(id string, fields string) (model.Articl
 	article := model.Articles{}
 	var err error
 	if fields == "" {
-		err = r.store.db.QueryRow(fmt.Sprintf("SELECT title,price,url_foto FROM articles WHERE id=%s", id)).
-			Scan(&article.Title, &article.Price, &article.URLFoto)
+		err = r.store.db.QueryRow("SELECT title,price,url_foto[1:1] FROM articles WHERE id=$1", id).
+			Scan(&article.Title, &article.Price, (*pq.StringArray)(&article.URLFoto))
 		return article, err
 	}
 	if fields == "full_text" {
-		err = r.store.db.QueryRow(fmt.Sprintf("SELECT title,%s,price,url_foto FROM articles WHERE id=%s", fields, id)).
-			Scan(&article.Title, &article.FullText, &article.Price, &article.URLFoto)
+		err = r.store.db.QueryRow("SELECT title,$1,price,url_foto FROM articles WHERE id=$2", fields, id).
+			Scan(&article.Title, &article.FullText, &article.Price, (*pq.StringArray)(&article.URLFoto))
 		return article, err
 	}
 	return article, errors.New("not valid fields value")
@@ -68,7 +69,7 @@ func (r *ArticlesRepository) ShowArticles(sort []string) ([]model.Articles, erro
 	articles := []model.Articles{}
 	for insert.Next() {
 		var article model.Articles
-		if err := insert.Scan(&article.ID, &article.Title, &article.FullText, &article.Price, &article.URLFoto, &article.Date); err != nil {
+		if err := insert.Scan(&article.ID, &article.Title, &article.FullText, &article.Price, (*pq.StringArray)(&article.URLFoto), &article.Date); err != nil {
 			return articles, err
 		}
 		articles = append(articles, article)

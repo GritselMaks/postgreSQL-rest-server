@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS articles(
    full_text VARCHAR(1000) NOT NULL,
    price integer NOT NULL,
    url_foto text[3] NOT NULL,
-   data_at date NOT NULL
+   date_at date NOT NULL
 );
